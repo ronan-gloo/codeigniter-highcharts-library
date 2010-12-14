@@ -11,6 +11,7 @@ Note: This library is still in early development stage. Any bug report and/or id
 Complete documentation will be available soon.
 
 Features:
+
 * generate charts from Active Record result
 * use template(s) from config file(s)
 * share global options for your charts
@@ -20,8 +21,8 @@ Features:
 
 **Highcharts - Interactive JavaScript charts for your web pages:**
 
-download highcharts: http://www.highcharts.com/
+[download highcharts](http://www.highcharts.com)
 
-API reference: http://www.highcharts.com/ref/
+[API reference](http://www.highcharts.com/ref)
 
 
