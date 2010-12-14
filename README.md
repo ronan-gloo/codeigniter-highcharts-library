@@ -8,14 +8,14 @@ Highcharts is a charting library written in pure JavaScript, offering an easy wa
 
 Note: This library is still in early development stage. Any bug report and/or ideas/improvements are welcome.
 
-Complete documentation will be available soon…
+Complete documentation will be available soon.
 
 Features:
-- generate charts from Active Record result
-- use template(s) from config file(s)
-- share global options for your charts
-- generate multiples charts in one shoot
-- output embedable js/html, json string or array
+* generate charts from Active Record result
+* use template(s) from config file(s)
+* share global options for your charts
+* generate multiples charts in one shoot
+* output embedable js/html, json string or array
 
 
 **Highcharts - Interactive JavaScript charts for your web pages:**
