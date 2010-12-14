@@ -5,7 +5,8 @@ What is Highcharts?
 -------------------
 Highcharts is a charting library written in pure JavaScript, offering an easy way of adding interactive charts to your web site or web application. Highcharts currently supports line, spline, area, areaspline, column, bar, pie and scatter chart types.
 
-
+About this library
+------------------
 Note: This library is still in early development stage. Any bug report and/or ideas/improvements are welcome.
 
 Complete documentation will be available soon.
