@@ -78,8 +78,8 @@ class Charts extends Controller {
 			->set_serie($graph_data['users'])
 			->set_serie($graph_data['popul'], 'Another description'); // ovverride serie name 
 		
-		// we want to display the second serie as column. First parameter is the serie name
-		$this->highcharts->set_serie_options('Another description', array('type' => 'spline'));
+		// we want to display the second serie as sline. First parameter is the serie name
+		$this->highcharts->set_serie_options(array('type' => 'spline'), 'Another description');
 		
 		$data['charts'] = $this->highcharts->render();
 		$this->load->view('charts', $data);
@@ -132,7 +132,7 @@ class Charts extends Controller {
 		$this->highcharts->set_serie($serie);
 		
 		$data['array']  = $this->highcharts->get_array();
-		$data['json']   = $this->highcharts->get(false); // false to keep data (dont clear current options)
+		$data['json']   = $this->highcharts->get(); // false to keep data (dont clear current options)
 		$this->load->view('charts', $data);
 
 	}

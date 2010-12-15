@@ -286,7 +286,7 @@ class Highcharts {
 	 * @param string $value. (default: '')
 	 * @return void
 	 */
-	public function set_serie_options($serie_name = '', $options = array())
+	public function set_serie_options($options = array(), $serie_name = '')
 	{
 		if ($serie_name AND count($options) > 0)
 		{
@@ -308,7 +308,7 @@ class Highcharts {
 	 * @param string $s_value. (default: '')
 	 * @return void
 	 */
-	public function push_serie_data($serie_name = '', $value = ''){
+	public function push_serie_data($value = '', $serie_name = ''){
 		
 		if ($serie_name AND $value)
 		{
@@ -411,10 +411,10 @@ class Highcharts {
 					$dat = $row->{$value['row']};
 					unset($value['row']);
 					
-					$this->set_serie_options($text, $value);
+					$this->set_serie_options($value, $text);
 				}
 				
-				$this->push_serie_data($text, $dat);
+				$this->push_serie_data($dat, $text);
 			}
 		}
 		return $this;
@@ -517,16 +517,9 @@ class Highcharts {
 	 * @access public
 	 * @return void
 	 */
-	public function render($u_options = array())
+	public function render()
 	{
 		$this->add();
-		
-		$options = array('renderTo' => 'hc_chart');
-		
-		if (is_array($options) AND count($options > 0))
-		{
-			$options = $options + $u_options;
-		}
 		
 		$i = 1; $d = 1; $divs = '';
 
