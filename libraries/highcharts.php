@@ -1,5 +1,37 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
+/**
+ * Class Highcharts
+ *
+ * Rewritten from http://www.crustiz.com/php-jquery/highcharts-library-for-codeigniter/
+ *
+ * Description:
+ * This library help to build , parse and render charts for highcharts
+ * by Torstein Hønsi. More infos at http://www.highcharts.com 
+ *
+ * @copyright	Copyright (c) Ronan-gloo 2010-12-13
+ * @version 	0.5
+ * Repository: https://github.com/ronan-gloo/codeigniter-highcharts-library
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ **/
+
 class Highcharts {
 	
 	// Static var to increment the variable declaration in render function
@@ -22,7 +54,7 @@ class Highcharts {
 	 */
 	public function __construct($config = array())
 	{				
-		$this->initialize($config);
+		if (count($config) > 0) $this->initialize($config);
 	}
 	
 	/**
@@ -425,13 +457,13 @@ class Highcharts {
 	/**
 	 * add function.
 	 * If options is a string, then the index of the current
-	 * options to store is it
+	 * options to store it
 	 * 
 	 * @access public
 	 * @param array $options. (default: array())
 	 * @return void
 	 */
-	function add($options = array(), $clear = true)
+	public function add($options = array(), $clear = true)
 	{
 		if (count($this->global_opts) <= self::$chart_id AND ! empty($this->opts['series']))
 		{
