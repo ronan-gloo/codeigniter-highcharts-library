@@ -3,17 +3,14 @@
 class Highcharts {
 	
 	// Static var to increment the variable declaration in render function
-	private static $chart_id = 1;
+	private static $chart_id = 0;
 	
 	private $shared_opts 	= array(); // shared grah data
 	private $global_opts	= array(); // All stocked graph data
 	private $opts 			= array(); // current graph data
 	private $serie_index 	= 0;
 	
-	public $js_chart_name = 'chart'; // name of the chart
-	
-	public $js_chart_opts = 'charts_options'; // Name of the javascript options
-	
+	public $js_chart_name = 'chart'; // name of the js var	
 	
 	/**
 	 * __construct function.
@@ -24,12 +21,8 @@ class Highcharts {
 	 * @return void
 	 */
 	public function __construct($config = array())
-	{		
-		if (! empty($config)) $this->initialize($config);
-		
-		$this->opts['series'] = array();
-		$this->opts['chart']['renderTo'] = 'hc_chart';
-
+	{				
+		$this->initialize($config);
 	}
 	
 	/**
@@ -45,19 +38,28 @@ class Highcharts {
 	 */
 	public function initialize($config = array(), $config_path = 'highcharts')
 	{
-		if (is_string($config) AND ! empty($config)) // string means "load this template"
+		if (is_string($config)) // string means "load this template"
 		{
 			$ci =& get_instance();
 			$ci->config->load($config_path);
 			
 			$config = $ci->config->item($config);
 			
+			if (count($config) > 0)
+			{
+				$this->opts = $this->set_local_options($config);
+			}
+			
 		}
 		if (isset($config['shared_options']) AND empty($this->shared_opts))
 		{
 			$this->shared_opts = $config['shared_options'];
+			unset($config['shared_options']);
 		}
-		//if (count($config) > 0) $this->opts = $this->set_local_options($config);
+		
+		if (! isset($this->opts['series'])) $this->opts['series'] = array();
+		if (! isset($this->opts['chart']['renderTo'])) $this->opts['chart']['renderTo'] = 'hc_chart';
+
 		return $this;
 	}
 	
@@ -162,17 +164,17 @@ class Highcharts {
 	// guessed most used parameters that desserves to be set quickly
 	/**
 	 * set_title function.
+	 * set title and subtitle in one shoot
 	 * 
 	 * @access public
 	 * @param string $title. (default: '')
 	 * @param array $options. (default: array())
 	 * @return void
 	 */
-	public function set_title($title = '', $options = array())
+	public function set_title($title = '', $subtitle = '')
 	{
-		$this->opts['title']['text'] = $title;
-		
-		if (count($options) > 0) $this->opts['title'] += $options;
+		if ($title) $this->opts['title']['text'] = $title;
+		if ($subtitle) $this->opts['subtitle']['text'] = $subtitle;
 
 		return $this;
 	}
@@ -249,23 +251,27 @@ class Highcharts {
 	 * @param array $a_value. (default: array())
 	 * @return void
 	 */
-	public function set_serie($serie_name = '', $options = array())
+	public function set_serie($options = array(), $serie_name = '')
 	{
-		
-		if ($serie_name)
+		if ( ! $serie_name AND ! isset($options['name']))
 		{
-			$index = $this->find_serie_name($serie_name);
-			
-			$this->opts['series'][$index] = array();
-			
-			if (count($options) > 0)
-			{
-				foreach($options as $key => $value)
-				{
-				    $value = (is_numeric($value)) ? (float)$value : $value;
-				    $this->opts['series'][$index][$key] = $value;
-				}
-			}
+			$serie_name = count($this->opts['series']);
+		}
+		// override with the serie name passed
+		else if ($serie_name AND isset($options['name']))
+		{
+			$options['name'] = $serie_name;
+		}
+		
+		$index = $this->find_serie_name($serie_name);
+		    		
+		if (count($options) > 0)
+		{
+		    foreach($options as $key => $value)
+		    {
+		        $value = (is_numeric($value)) ? (float)$value : $value;
+		        $this->opts['series'][$index][$key] = $value;
+		    }
 		}
 		return $this;
 	}
@@ -378,8 +384,8 @@ class Highcharts {
 				
 		foreach ($data['data'] as $row)
 		{
-			if (isset($data['x_label'])) $this->push_categorie($row->$data['x_label'],'x');
-			if (isset($data['y_label'])) $this->push_categorie($row->$data['y_label'],'y');
+			if (isset($data['x_labels'])) $this->push_categorie($row->$data['x_labels'],'x');
+			if (isset($data['y_labels'])) $this->push_categorie($row->$data['y_labels'],'y');
 			
 			foreach ($data['series'] as $name => $value)
 			{	
@@ -427,19 +433,22 @@ class Highcharts {
 	 */
 	function add($options = array(), $clear = true)
 	{
-		if (is_string($options) AND trim($options) !== '')
+		if (count($this->global_opts) <= self::$chart_id AND ! empty($this->opts['series']))
 		{
-			$this->global_opts[$options] = $this->opts;
-		}
-		else
-		{
-			$this->global_opts[self::$chart_id] = (count($options)> 0) ? $options : $this->opts;
+			if (is_string($options) AND trim($options) !== '')
+			{
+				$this->global_opts[$options] = $this->opts;
+			}
+			else
+			{
+				$this->global_opts[self::$chart_id] = (count($options)> 0) ? $options : $this->opts;
+			}
 		}
 		
-		self::$chart_id++;
+		self::$chart_id++;	
 		
 		if ($clear === true) $this->clear();
-		
+					
 		return $this;
 	}
 	
@@ -453,10 +462,8 @@ class Highcharts {
 	 */
 	public function get($clear = true)
 	{
-		if ((self::$chart_id -1) == count($this->global_opts) AND count($this->opts) > 0)
-		{
-			$this->add();
-		}
+		$this->add();
+		
 		foreach ($this->global_opts as $key => $opts)
 		{
 			$this->global_opts[$key] = json_encode($opts);
@@ -474,10 +481,7 @@ class Highcharts {
 	 */
 	public function get_array($clear = true)
 	{
-		if ((self::$chart_id -1) == count($this->global_opts) AND count($this->opts) > 0)
-		{
-			$this->add();
-		}
+		$this->add();
 		
 		return $this->process_get($this->global_opts, $clear, 'array');
 	}
@@ -515,6 +519,8 @@ class Highcharts {
 	 */
 	public function render($u_options = array())
 	{
+		$this->add();
+		
 		$options = array('renderTo' => 'hc_chart');
 		
 		if (is_array($options) AND count($options > 0))
@@ -524,14 +530,14 @@ class Highcharts {
 		
 		$i = 1; $d = 1; $divs = '';
 
-		$embed  = '<script type="text/javascript">';
-        $embed .= '$(document).ready(function(){';
-       	       	       
+		$embed  = '<script type="text/javascript">'."\n";
+       	$embed .= '$(function(){'."\n";
+        
         foreach ($this->global_opts as $opts)
         {
 			if (count($this->shared_opts) > 0 AND $i === 1)
        		{
-       			$embed .= 'Highcharts.setOptions('.json_encode($this->shared_opts).');';
+       			$embed .= 'Highcharts.setOptions('.json_encode($this->shared_opts).');'."\n";
        		}
 
         	if (($opts['chart']['renderTo'] == 'hc_chart'))
@@ -540,16 +546,14 @@ class Highcharts {
         		$d++;
         	}
 			
-			$embed .= 'var '.$this->js_chart_name.'_'.	$i.' = new Highcharts.Chart('.json_encode($opts).');';
-			$divs  .= '<div id="'.$opts['chart']['renderTo'].'"></div>';
+			$embed .= 'var '.$this->js_chart_name.'_'.	$i.' = new Highcharts.Chart('.json_encode($opts).');'."\n";
+			$divs  .= '<div id="'.$opts['chart']['renderTo'].'"></div>'."\n";
 			$i++;
 		}
         
-        $embed .= '});';
-        $embed .= '</script>';
+		$embed .= '});'."\n";
+        $embed .= '</script>'."\n";
         $embed .= $divs;
-        
-		self::$chart_id++;
         
         $this->clear();
                 
