@@ -137,6 +137,36 @@ class Charts extends Controller {
 
 	}
 	
+	/**
+	 * pie function.
+	 * Draw a Pie, and run javascript callback functions
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	function pie()
+	{
+		$this->load->library('highcharts');
+		$serie['data']	= array(
+			array('value one', 20), 
+			array('value two', 45), 
+			array('other value', 60)
+		);
+		$callback = "function() { return '<b>'+ this.point.name +'</b>: '+ this.y +' %'}";
+		
+		$tool->formatter = $callback;
+		$plot->pie->dataLabels->formatter = $callback;
+		
+		$this->highcharts
+			->set_type('pie')
+			->set_serie($serie)
+			->set_tooltip($tool)
+			->set_plotOptions($plot);
+		
+		$data['charts'] = $this->highcharts->render();
+		$this->load->view('charts', $data);
+	}
+	
 	
 	// HELPERS FUNCTIONS
 	/**

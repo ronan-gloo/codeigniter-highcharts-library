@@ -37,6 +37,7 @@
 			<li><?php echo anchor($home.'categories', 'Advanced example')?></li>
 			<li><?php echo anchor($home.'template', 'Options from template file')?></li>
 			<li><?php echo anchor($home.'active_record', 'multiples chart and Database result')?></li>
+			<li><?php echo anchor($home.'pie', 'Pie grah with callback functions')?></li>
 			<li><?php echo anchor($home.'data_get', 'outputing json or array')?></li>
 		</ol>
 	</div>

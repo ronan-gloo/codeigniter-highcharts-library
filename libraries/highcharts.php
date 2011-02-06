@@ -10,7 +10,7 @@
  * by Torstein Hønsi. More infos at http://www.highcharts.com 
  *
  * @copyright	Copyright (c) Ronan-gloo 2010-12-13
- * @version 	0.5
+ * @version 	0.6
  * Repository: https://github.com/ronan-gloo/codeigniter-highcharts-library
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39,8 +39,8 @@ class Highcharts {
 	
 	private $shared_opts 	= array(); // shared grah data
 	private $global_opts	= array(); // All stocked graph data
-	private $opts 			= array(); // current graph data
-	private $serie_index 	= 0;
+	private $opts					= array(); // current graph data
+	private $replace_keys, $orig_keys, $serie_index = 0;
 	
 	public $js_chart_name = 'chart'; // name of the js var	
 	
@@ -167,7 +167,7 @@ class Highcharts {
 					$root[$opt_key] = array();
 					$root[$opt_key] = $this->set_local_options($opt_name, $root[$opt_key]); // convert back to array
 				}
-				else $root[$opt_key] = $opt_name;
+				else $root[$opt_key] = $this->encode_function($opt_name);
 			}
 		}
 		return $root;
@@ -301,8 +301,8 @@ class Highcharts {
 		{
 		    foreach($options as $key => $value)
 		    {
-		        $value = (is_numeric($value)) ? (float)$value : $value;
-		        $this->opts['series'][$index][$key] = $value;
+					$value = (is_numeric($value)) ? (float)$value : $value;
+					$this->opts['series'][$index][$key] = $value;
 		    }
 		}
 		return $this;
@@ -498,7 +498,7 @@ class Highcharts {
 		
 		foreach ($this->global_opts as $key => $opts)
 		{
-			$this->global_opts[$key] = json_encode($opts);
+			$this->global_opts[$key] = $this->encode($opts);
 		}	
 		
 		return $this->process_get($this->global_opts, $clear, 'json');
@@ -519,6 +519,22 @@ class Highcharts {
 	}
 	
 	/**
+	 * encode function.
+	 * Search and replace delimited functions by encode_function()
+	 * We need to remove quotes from json string in order to
+	 * make javascript function works.
+	 * 
+	 * @access public
+	 * @param mixed $options
+	 * @return void
+	 */
+	public function encode($options)
+	{
+		$options = str_replace('\\', '', json_encode($options));
+		return str_replace($this->replace_keys, $this->orig_keys, $options);
+	}
+	
+	/**
 	 * process_get function.
 	 * This functon send the output for get() and get_array().
 	 * it will return an associative array if some global variables are defined.
@@ -532,7 +548,7 @@ class Highcharts {
 	{
 		if (count($this->shared_opts) > 0)
 		{
-			$global = ($type == 'json') ? json_encode($this->shared_opts) : $this->shared_opts;
+			$global = ($type == 'json') ? $this->encode($this->shared_opts) : $this->shared_opts;
 			
 			$options = array('global' => $global, 'local' => $options);
 		}
@@ -556,33 +572,33 @@ class Highcharts {
 		$i = 1; $d = 1; $divs = '';
 
 		$embed  = '<script type="text/javascript">'."\n";
-       	$embed .= '$(function(){'."\n";
+		$embed .= '$(function(){'."\n";
         
-        foreach ($this->global_opts as $opts)
-        {
+		foreach ($this->global_opts as $opts)
+		{
 			if (count($this->shared_opts) > 0 AND $i === 1)
-       		{
-       			$embed .= 'Highcharts.setOptions('.json_encode($this->shared_opts).');'."\n";
-       		}
+      {
+        $embed .= 'Highcharts.setOptions('.$this->encode($this->shared_opts).');'."\n";
+      }
 
-        	if (($opts['chart']['renderTo'] == 'hc_chart'))
-        	{
-        		$opts['chart']['renderTo'] .= '_'.$d;
-        		$d++;
-        	}
+      if ($opts['chart']['renderTo'] == 'hc_chart')
+      {
+        $opts['chart']['renderTo'] .= '_'.$d;
+        $d++;
+      }
 			
-			$embed .= 'var '.$this->js_chart_name.'_'.	$i.' = new Highcharts.Chart('.json_encode($opts).');'."\n";
+			$embed .= 'var '.$this->js_chart_name.'_'.	$i.' = new Highcharts.Chart('.$this->encode($opts).');'."\n";
 			$divs  .= '<div id="'.$opts['chart']['renderTo'].'"></div>'."\n";
 			$i++;
 		}
         
 		$embed .= '});'."\n";
-        $embed .= '</script>'."\n";
-        $embed .= $divs;
+		$embed .= '</script>'."\n";
+		$embed .= $divs;
         
-        $this->clear();
+		$this->clear();
                 
-        return $embed;
+		return $embed;
 	}
 	
 	
@@ -605,6 +621,50 @@ class Highcharts {
 		
 		return $this;
 	}
-
+	
+	/**
+	 * encode_functions function.
+	 * We are looking for javascript functions and delimit them
+	 * 
+	 * @access private
+	 * @param mixed $array
+	 * @return void
+	 */
+	private function encode_function($array = array())
+	{
+		if (is_string($array)) {
+			$array = $this->delimit_function($array);
+		}
+		else {
+			foreach($array as $key => $value) {
+				if (is_array($value)) {
+					$this->encode_function($value);
+				}
+				else {
+					$array[$key] = $this->delimit_function($value);
+				}				
+			}
+		}
+		return $array;
+	}
+	
+	/**
+	 * delimit_function function.
+	 * 'Tag' javascript functions
+	 * 
+	 * @access private
+	 * @param string $string. (default: '')
+	 * @return void
+	 */
+	private function delimit_function($string = '')
+	{
+		if(strpos($string, 'function(') !== false)
+		{
+    	  $this->orig_keys[] = $string;
+    	  $string = '$$' . $string . '$$';
+			  $this->replace_keys[] = '"' . $string . '"';
+		}
+		return $string;
+	}
 
 }
