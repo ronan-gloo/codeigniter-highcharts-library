@@ -1,6 +1,6 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Charts extends Controller {
+class Charts extends CI_Controller {
 
 	function __construct()
 	{
