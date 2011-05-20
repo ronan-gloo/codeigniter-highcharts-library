@@ -31,7 +31,7 @@ $config['chart_template'] = array(
      	 '#ED561B', '#50B432'
      ),
      'credits' => array(
-     	'enable'=> true,
+     	'enabled'=> true,
      	'text'	=> 'highcharts library on GitHub',
 		'href' => 'https://github.com/ronan-gloo/codeigniter-highcharts-library'
      ),
